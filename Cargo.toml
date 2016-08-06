@@ -1,0 +1,7 @@
+[package]
+name = "netflowv9"
+version = "0.1.0"
+authors = ["Hroi Sigurdsson <hroi@asdf.dk>"]
+
+[dependencies]
+flate2 = "0.2"
