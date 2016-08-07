@@ -26,7 +26,7 @@ header of the packet."),
 5 => (IpClassOfService, ip_class_of_service, u8, (), doc="For IPv4 packets, this is the value of the TOS field in
 the IPv4 packet header.  For IPv6 packets, this is the
 value of the Traffic Class field in the IPv6 packet header."),
-6 => (TcpControlBits, tcp_control_bits, u16, (), doc="TCP control bits observed for the packets of this Flow.
+6 => (TcpControlBits, tcp_control_bits, u16, (1, 2), doc="TCP control bits observed for the packets of this Flow.
 This information is encoded as a bit field; for each TCP control
 bit, there is a bit in this set.  The bit is set to 1 if any
 observed packet of this Flow has the corresponding TCP control bit
@@ -487,7 +487,7 @@ one bitmapped field.  Reserved for internal use on the Collector."),
 IPv4 packet header or the IPv6 Fragment header,
 respectively.  The value is 0 for IPv6 if there is
 no fragment header."),
-89 => (ForwardingStatus, forwarding_status, u32, (), doc="This Information Element describes the forwarding status of the
+89 => (ForwardingStatus, forwarding_status, u32, (1, 4), doc="This Information Element describes the forwarding status of the
 flow and any attached reasons.  The reduced-size encoding rules as
 per [RFC7011] apply.
 
