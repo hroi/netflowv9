@@ -117,13 +117,14 @@ pub enum FlowSet<'packet> {
 
 pub struct DataRecords<'bytes> {
     pub template_id: u16,
-    raw: &'bytes [u8],
+    pub raw: &'bytes [u8],
 }
 pub struct Other<'bytes> {
     pub flowset_id: u16,
     pub raw: &'bytes [u8],
 }
 // DATA
+#[derive(Clone)]
 pub struct DataTemplateIter<'bytes> {
     pub raw: &'bytes [u8],
 }
@@ -146,7 +147,6 @@ impl<'bytes> Iterator for DataTemplateIter<'bytes> {
             template_id: template_id,
             field_count: field_count,
             fields: TemplateFieldIter {
-                offset: 0,
                 raw: &self.raw[4..length],
             },
         };
@@ -162,13 +162,14 @@ pub struct DataTemplate<'fields> {
 }
 impl<'fields> DataTemplate<'fields> {
     pub fn build_extractor(&self) -> FlowRecordExtractor {
-        FlowRecordExtractor::new(&self.fields)
+        FlowRecordExtractor::new(&self.fields, 0)
     }
 }
 
 #[derive(Clone)]
 pub struct TemplateFieldIter<'bytes> {
-    offset: usize,
+    /// Where the record fields in a flow set begin. For flow records, this is always 0,
+    /// for options records this starts after the scope data.
     pub raw: &'bytes [u8],
 }
 impl<'bytes> Iterator for TemplateFieldIter<'bytes> {
@@ -188,6 +189,7 @@ impl<'bytes> Iterator for TemplateFieldIter<'bytes> {
 }
 
 // OPTIONS
+#[derive(Clone)]
 pub struct OptionsTemplateIter<'bytes> {
     pub raw: &'bytes [u8],
 }
@@ -214,7 +216,6 @@ impl<'bytes> Iterator for OptionsTemplateIter<'bytes> {
             option_length: option_length,
             scopes: ScopeIter { raw: scopes },
             fields: TemplateFieldIter {
-                offset: option_scope_length as usize,
                 raw: &options[..option_length as usize],
             },
         };
@@ -232,7 +233,7 @@ pub struct OptionsTemplate<'fields> {
 }
 impl<'fields> OptionsTemplate<'fields> {
     pub fn build_extractor(&self) -> FlowRecordExtractor {
-        FlowRecordExtractor::new(&self.fields)
+        FlowRecordExtractor::new(&self.fields, self.option_scope_length as usize)
     }
 }
 
@@ -616,9 +617,9 @@ macro_rules! define_fields {
 
         impl FlowRecordExtractor {
 
-            pub fn new(fields: &TemplateFieldIter) -> FlowRecordExtractor {
+            pub fn new(fields: &TemplateFieldIter, start_offset: usize) -> FlowRecordExtractor {
                 let mut ret: FlowRecordExtractor = Default::default();
-                let mut offset = fields.offset;
+                let mut offset = start_offset;
 
                 for (len, field) in fields.clone() {
                     use TemplateField::*;
