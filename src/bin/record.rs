@@ -163,7 +163,7 @@ impl<D,W> Write for FlowFileWriter<D, W> where D: Display + Copy, W: Write {
                     };
                     try!(self.output.write(&template_id[..]));
                     let length: [u8; 2] = unsafe {
-                        mem::transmute((buf.len() as u16).to_be())
+                        mem::transmute((records.raw.len() as u16).to_be())
                     };
                     try!(self.output.write(&length[..]));
                     try!(self.output.write(records.raw));
