@@ -14,9 +14,16 @@ use flate2::Compression;
 extern crate netflowv9;
 use netflowv9::*;
 
+/* TODO:
+
+ - Save exporter boot time etc. so flow timestamps can be calculated.
+ - filter out options records, save to end of file
+
+*/
+
 fn main() {
     let compression = Compression::Best;
-    let rotate_interval = Duration::from_secs(30);
+    let rotate_interval = Duration::from_secs(300);
     let mut file_map: HashMap<IpAddr, FlowFileWriter<IpAddr, _>> = HashMap::new();
     let socket = UdpSocket::bind("[::]:4013").unwrap();
     let mut recv_buf = [0u8; 2048];
@@ -68,7 +75,7 @@ impl<D> FlowFileWriter<D, Output> where D: Display + Copy {
 
     fn init_file(exporter_name: D, generation: usize) -> Result<File, std::io::Error> {
         let mut file = try!(OpenOptions::new().create(true).write(true).read(true)
-                            .open(format!("./{}.{:04}", exporter_name, generation)));
+                            .open(format!("./data/{}.{:04}", exporter_name, generation)));
         // magic
         try!(file.write(b"NETFLO00"));
         // offset to metadata packets (updated in finalize_file)
